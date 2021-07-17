@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
 
-namespace CongratulatorAPP
+namespace ConsoleCongratulator
 {
     public class Person
     {

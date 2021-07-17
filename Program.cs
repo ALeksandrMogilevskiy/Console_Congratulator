@@ -1,56 +1,60 @@
 ﻿using System;
 
-namespace CongratulatorAPP
+namespace ConsoleCongratulator
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Congratulator congratulator = new Congratulator();
 
-            congratulator.ShowDataOfPastFiveDays();
-            Console.WriteLine(new string('=',60));
-            congratulator.ShowDataOfNextFiveDays();
+            Congratulator congratulator = new Congratulator();
+            Console.WriteLine("Прошедшие дни рождения за 5 дней:");
+            congratulator.ShowData(5, 0, "3");
+            Console.WriteLine("Дни рождения за следующие 5 дней:");
+            congratulator.ShowData(0, 5, "3");
 
             while (true)
             {
                 Console.WriteLine(new string('=', 100));
-                Console.WriteLine("Выберите действие");
-                Console.Write("1.Показать все записи (сортировка по Id)\t");
-                Console.WriteLine("2.Сортировка по количеству дней до дня рождения");
-                Console.Write("3.Сортировка записей по имени\t\t\t");
-                Console.WriteLine("4.Добавить запись");
-                Console.Write("5.Редактировать запись\t\t\t\t");
-                Console.WriteLine("6.Удалить запись");
+                Console.WriteLine("Укажите действие:");
+                Console.WriteLine("1 - Показать все данные (сортировка по Id)");
+                Console.WriteLine("2 - Показать все данные (сортировка по алфавиту)");
+                Console.WriteLine("3 - Показать все данные (сортировка по количеству дней до дня рождения");
+                Console.WriteLine("4 - Задать диапазон дней и сортировку");
+                Console.WriteLine("5 - Добавить новую запись");
+                Console.WriteLine("6 - Редактировать запись");
+                Console.WriteLine("7 - Удалить запись");
 
-                String action = Console.ReadLine();
+                string action = Console.ReadLine();
 
                 try
                 {
                     switch (action)
                     {
                         case "1":
-                            congratulator.ShowAllDataSortedById();
+                            congratulator.ShowData(183, 183, "1");
                             break;
                         case "2":
-                            congratulator.ShowAllDataSortedByDaysLeft();
+                            congratulator.ShowData(183, 183, "2");
                             break;
                         case "3":
-                            congratulator.ShowDataSortedByAlphabet();
+                            congratulator.ShowData(183, 183, "3");
                             break;
                         case "4":
-                            congratulator.AddNewPerson();
+                            congratulator.ShowData();
                             break;
                         case "5":
-                            congratulator.RedactPersonData();
+                            congratulator.AddNewPerson();
                             break;
                         case "6":
+                            congratulator.EditPerson();
+                            break;
+                        case "7":
                             congratulator.DeletePerson();
                             break;
-
                         default:
                             Console.ForegroundColor = ConsoleColor.DarkRed;
-                            Console.WriteLine("Вы выбрали несуществующее действие, повторите выбор");
+                            Console.WriteLine("Ошибка, повторите действия");
                             Console.ForegroundColor = ConsoleColor.Gray;
                             break;
                     }
@@ -58,10 +62,14 @@ namespace CongratulatorAPP
                 catch
                 {
                     Console.ForegroundColor = ConsoleColor.DarkRed;
-                    Console.WriteLine("Ошибка, повторите действия");
+                    Console.WriteLine("Ошибка, Повторите действия");
                     Console.ForegroundColor = ConsoleColor.Gray;
                 }
+
+
             }
+
+
         }
     }
 }

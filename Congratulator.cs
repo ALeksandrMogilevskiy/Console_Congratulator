@@ -1,84 +1,90 @@
 ﻿using System;
 using System.Linq;
 
-namespace CongratulatorAPP
+namespace ConsoleCongratulator
 {
-    public class Congratulator
+    class Congratulator
     {
         AppContext db = new AppContext();
-        public void ShowDataOfPastFiveDays()
+        public void ShowData(int numberOfPastDays = 0, int numberOfNextDays=0, string sortingMarker = "0")
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Прошедшие дни рождения за последние 5 дней:");
-            var fivePastDaysData = db.People.Where(p => DateTime.Now.DayOfYear - p.BirthDate.DayOfYear >= 1 &
-                                                        DateTime.Now.DayOfYear - p.BirthDate.DayOfYear < 6);
-            foreach (var p in fivePastDaysData)
+            if (numberOfPastDays == 0 & numberOfNextDays == 0)
             {
-                Console.WriteLine($"{p.Id}.{p.Name,-20}\t{p.BirthDate.ToString("M")}");
+                Console.WriteLine("Укажите количество прошедших дней, за которые нужно получить данные");
+                numberOfPastDays = Convert.ToInt32(Console.ReadLine());
+                Console.WriteLine("Укажите количество следующих дней, за которые нужно получить данные");
+                numberOfNextDays = Convert.ToInt32(Console.ReadLine());
             }
-            Console.ForegroundColor = ConsoleColor.Gray;
-        }
-        public void ShowDataOfNextFiveDays()
-        {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("Дни рождения в ближайшие 5 дней:");
-            var fiveNextDaysData = db.People.Where(p => p.BirthDate.DayOfYear - DateTime.Now.DayOfYear > 0 &
-                                                        p.BirthDate.DayOfYear - DateTime.Now.DayOfYear < 6);
-            var birthdayToday = db.People.Where(p => DateTime.Now.DayOfYear - p.BirthDate.DayOfYear == 0);
-                foreach (var p in birthdayToday)
-                {
-                    Console.Write($"{p.Id}.{p.Name,-20}\t{p.BirthDate.ToString("M")}");
-                    Console.WriteLine($"\t День рождения сегодня, не забудьте поздравить!");
-                }
-                foreach (var p in fiveNextDaysData)
-                {
-                    Console.WriteLine($"{p.Id}.{p.Name,-20}\t{p.BirthDate.ToString("M")}");
-                }
-            Console.ForegroundColor = ConsoleColor.Gray;
-        }
-        public void ShowAllDataSortedById()
-        {
-            var allDatabyId = db.People;
-            Console.WriteLine("Все записи:");
-            foreach (var p in allDatabyId)
+            if (sortingMarker == "0")
             {
-                Console.WriteLine($"{p.Id}.{p.Name,-20}\t{p.BirthDate.ToString("M")}");
-            }   
-        }
+                Console.WriteLine("Укажите маркер сортировки");
+                Console.WriteLine("1 - Сортировка по Id");
+                Console.WriteLine("2 - сортировка по алфавиту");
+                Console.WriteLine("3 - Сортировка по количеству оставшихся дней до дня рождения");
+                sortingMarker = Console.ReadLine();
+            }
+            int currentDay = DateTime.Now.DayOfYear;
 
-        public void ShowAllDataSortedByDaysLeft()
-        {
             int numberOfdaysInCurrentYear;
             if (DateTime.Now.Year % 4 == 0)
                 numberOfdaysInCurrentYear = 366;
-            else 
+            else
                 numberOfdaysInCurrentYear = 365;
 
-            var dataSortedByDaysLeft = db.People.OrderBy(p => p.BirthDate.DayOfYear >= DateTime.Today.DayOfYear ?
-                                                        p.BirthDate.DayOfYear - DateTime.Today.DayOfYear :
-                                                        p.BirthDate.DayOfYear - DateTime.Now.DayOfYear + numberOfdaysInCurrentYear);
-            foreach (var p in dataSortedByDaysLeft)
+            var data = db.People.Where(d => currentDay - d.BirthDate.DayOfYear <= numberOfPastDays &
+                                            d.BirthDate.DayOfYear - currentDay <= numberOfNextDays);
+
+
+            if (sortingMarker == "1")
             {
-                if (DateTime.Now.DayOfYear > p.BirthDate.DayOfYear)
+                data = data.OrderBy(d => d.Id);
+            }
+            else if (sortingMarker == "2")
+            {
+                data = data.OrderBy(d => d.Name);
+            }
+            else if (sortingMarker == "3")
+            {
+                data = data.OrderBy(d => d.BirthDate.DayOfYear >= currentDay ?
+                                          d.BirthDate.DayOfYear - currentDay :
+                d.BirthDate.DayOfYear - currentDay + numberOfdaysInCurrentYear);
+            }
+            else 
+            {
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                Console.WriteLine("Ошибка ввода");
+                Console.ForegroundColor = ConsoleColor.Gray;
+            }
+
+            foreach (var d in data)
+            {
+                if (d.BirthDate.DayOfYear >= currentDay)
                 {
-                    Console.WriteLine($"{p.Id}.{p.Name,-20}\t{p.BirthDate.ToString("M"),-16}" +
-                    $"\t Осталось дней до дня рождения:{numberOfdaysInCurrentYear - (DateTime.Now.DayOfYear - p.BirthDate.DayOfYear)}");
+                    if (d.BirthDate.DayOfYear - currentDay <= 5)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine($"{d.Id}.{d.Name,-20}\t{d.BirthDate.ToString("M"),-16}" +
+                        $"\t Осталось дней до дня рождения:{d.BirthDate.DayOfYear - currentDay}");
+                        Console.ForegroundColor = ConsoleColor.Gray;
+                    }
+                    else
+                        Console.WriteLine($"{d.Id}.{d.Name,-20}\t{d.BirthDate.ToString("M"),-16}" +
+                        $"\t Осталось дней до дня рождения:{d.BirthDate.DayOfYear - currentDay}");
                 }
-                else if (DateTime.Now.DayOfYear <= p.BirthDate.DayOfYear)
+                else if (d.BirthDate.DayOfYear < currentDay)
                 {
-                    Console.WriteLine($"{p.Id}.{p.Name,-20}\t{p.BirthDate.ToString("M"),-16}" +
-                    $"\t Осталось дней до дня рождения:{p.BirthDate.DayOfYear - DateTime.Now.DayOfYear}");
+                    if (currentDay - d.BirthDate.DayOfYear <= 5)
+                    { 
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine($"{d.Id}.{d.Name,-20}\t{d.BirthDate.ToString("M"),-16}" +
+                        $"\t Осталось дней до дня рождения:{d.BirthDate.DayOfYear - currentDay + numberOfdaysInCurrentYear}");
+                        Console.ForegroundColor = ConsoleColor.Gray;
+                    }
+                    else
+                        Console.WriteLine($"{d.Id}.{d.Name,-20}\t{d.BirthDate.ToString("M"),-16}" +
+                        $"\t Осталось дней до дня рождения:{d.BirthDate.DayOfYear - currentDay + numberOfdaysInCurrentYear}");
                 }
             } 
-        }
-
-        public void ShowDataSortedByAlphabet()
-        {
-            var allDatabyAlphabet = db.People.OrderBy(p => p.Name);
-            foreach (var p in allDatabyAlphabet)
-            {
-                Console.WriteLine($"{p.Id}.{p.Name,-20}\t{p.BirthDate.ToString("M")}");
-            }
         }
 
         public void AddNewPerson()
@@ -96,14 +102,14 @@ namespace CongratulatorAPP
 
             Console.WriteLine("Новая запись добавлена");
             Console.WriteLine($"Id: {newPersonAdded.Id}\tИмя: {newPersonAdded.Name}" +
-                     $"\tДень рождения: {newPersonAdded.BirthDate.ToString("M")}");
+                        $"\tДень рождения: {newPersonAdded.BirthDate.ToString("M")}");
         }
 
-        public void RedactPersonData()
+        public void EditPerson()
         {
-            int idOfRedactedPerson;
+            int idOfEditedPerson;
             Console.WriteLine("Введите Id записи, которую нужно редактировать");
-            idOfRedactedPerson = Convert.ToInt32(Console.ReadLine());
+            idOfEditedPerson = Convert.ToInt32(Console.ReadLine());
 
             Person newPerson = new Person();
 
@@ -113,13 +119,13 @@ namespace CongratulatorAPP
             Console.WriteLine("Введите день рождения для новой записи в формате дд.мм");
             newPerson.BirthDate = Convert.ToDateTime(Console.ReadLine());
 
-            Person redactedPerson = db.People.First(p => p.Id == idOfRedactedPerson);
+            Person editedPerson = db.People.First(p => p.Id == idOfEditedPerson);
 
-            redactedPerson.Name = newPerson.Name;
-            redactedPerson.BirthDate = newPerson.BirthDate;
+            editedPerson.Name = newPerson.Name;
+            editedPerson.BirthDate = newPerson.BirthDate;
             db.SaveChanges();
-            Console.WriteLine($"Данные успешно изменены\nId: {redactedPerson.Id}\tИмя: {redactedPerson.Name}\tДень рождения:"+
-                                                                                $" {redactedPerson.BirthDate.ToString("M")}");
+            Console.WriteLine($"Данные успешно изменены\nId: {editedPerson.Id}\tИмя: {editedPerson.Name}\tДень рождения:" +
+                                                                                 $" {editedPerson.BirthDate.ToString("M")}");
         }
 
         public void DeletePerson()
